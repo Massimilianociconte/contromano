@@ -19,9 +19,9 @@ const DAY = 86400000;
 
 await migrate();
 
-await sqliteClient.execute(
-  "DELETE FROM reports; DELETE FROM sources; DELETE FROM snapshots; DELETE FROM comments; DELETE FROM votes; DELETE FROM proposals; DELETE FROM password_reset_tokens; DELETE FROM users;"
-);
+for (const t of ["reports","sources","snapshots","comments","votes","proposals","password_reset_tokens","users"]) {
+  await sqliteClient.execute(`DELETE FROM ${t}`);
+}
 
 const FIRST = ["Luca","Giulia","Marco","Sara","Alessandro","Chiara","Matteo","Elena","Francesco","Martina","Davide","Alessia","Simone","Valentina","Andrea","Federica","Riccardo","Beatrice","Tommaso","Camilla","Gabriele","Arianna","Stefano","Sofia","Nicola","Rebecca","Filippo","Emma","Pietro","Anna"];
 const LAST = ["Rossi","Bianchi","Ferrari","Russo","Esposito","Romano","Colombo","Ricci","Marino","Greco","Bruno","Gallo","Conti","De Luca","Mancini","Costa","Giordano","Rizzo","Lombardi","Moretti","Barbieri","Fontana","Santoro","Mariani","Rinaldi","Caruso","Ferrara","Galli","Martini","Leone"];
