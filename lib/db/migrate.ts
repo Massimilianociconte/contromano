@@ -1,4 +1,4 @@
-import { sqlite } from "@/lib/db";
+import { sqliteClient } from "@/lib/db";
 
 const statements = [
   `CREATE TABLE IF NOT EXISTS users (
@@ -13,6 +13,14 @@ const statements = [
   )`,
   `CREATE UNIQUE INDEX IF NOT EXISTS users_username_idx ON users (username)`,
   `CREATE UNIQUE INDEX IF NOT EXISTS users_email_idx ON users (email)`,
+  `CREATE TABLE IF NOT EXISTS password_reset_tokens (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES users(id),
+    token_hash TEXT NOT NULL,
+    expires_at INTEGER NOT NULL,
+    used_at INTEGER
+  )`,
+  `CREATE INDEX IF NOT EXISTS prt_token_idx ON password_reset_tokens (token_hash)`,
   `CREATE TABLE IF NOT EXISTS proposals (
     id TEXT PRIMARY KEY,
     slug TEXT NOT NULL,
@@ -27,6 +35,7 @@ const statements = [
     country TEXT,
     author_id TEXT NOT NULL REFERENCES users(id),
     views_count INTEGER NOT NULL DEFAULT 0,
+    status TEXT NOT NULL DEFAULT 'published',
     created_at INTEGER NOT NULL
   )`,
   `CREATE UNIQUE INDEX IF NOT EXISTS proposals_slug_idx ON proposals (slug)`,
@@ -48,6 +57,7 @@ const statements = [
     parent_id TEXT,
     kind TEXT NOT NULL,
     body TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'published',
     created_at INTEGER NOT NULL
   )`,
   `CREATE INDEX IF NOT EXISTS comments_proposal_idx ON comments (proposal_id)`,
@@ -73,42 +83,27 @@ const statements = [
     reason TEXT NOT NULL,
     created_at INTEGER NOT NULL
   )`,
-  `CREATE TABLE IF NOT EXISTS password_reset_tokens (
-    id TEXT PRIMARY KEY,
-    user_id TEXT NOT NULL REFERENCES users(id),
-    token_hash TEXT NOT NULL,
-    expires_at INTEGER NOT NULL,
-    used_at INTEGER
-  )`,
-  `CREATE INDEX IF NOT EXISTS prt_token_idx ON password_reset_tokens (token_hash)`,
 ];
 
 const alterations: [string, string, string][] = [
   ["users", "role", `ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT 'user'`],
-  ["proposals", "status", `ALTER TABLE proposals ADD COLUMN status TEXT NOT NULL DEFAULT 'published'`],
-  ["comments", "status", `ALTER TABLE comments ADD COLUMN status TEXT NOT NULL DEFAULT 'published'`],
 ];
 
-function columnExists(table: string, column: string): boolean {
-  const rows = sqlite.prepare(`PRAGMA table_info(${table})`).all() as { name: string }[];
-  return rows.some((r) => r.name === column);
+async function columnExists(table: string, column: string): Promise<boolean> {
+  const rs = await sqliteClient.execute(`PRAGMA table_info(${table})`);
+  return rs.rows.some((r) => r.name === column);
 }
 
-export function migrate() {
-  for (const s of statements) sqlite.exec(s);
-  sqlite.exec("BEGIN");
-  try {
-    for (const [table, col, ddl] of alterations) {
-      if (!columnExists(table, col)) sqlite.exec(ddl);
-    }
-    sqlite.exec("COMMIT");
-  } catch (e) {
-    sqlite.exec("ROLLBACK");
-    throw e;
+export async function migrate() {
+  for (const s of statements) await sqliteClient.execute(s);
+  for (const [table, col, ddl] of alterations) {
+    if (!(await columnExists(table, col))) await sqliteClient.execute(ddl);
   }
 }
 
 if (process.argv[1] && process.argv[1].endsWith("migrate.ts")) {
-  migrate();
-  console.log("Migration complete.");
+  migrate().then(() => {
+    console.log("Migration complete.");
+    process.exit(0);
+  });
 }

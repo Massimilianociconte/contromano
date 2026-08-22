@@ -316,33 +316,25 @@ export async function deleteAccountAction(
   if (confirmPhrase !== "ELIMINA") return { error: d.errors.deleteConfirmWord };
 
   // Full erasure: content authored by the account is removed with it.
-  // better-sqlite3 is synchronous: manual BEGIN/COMMIT gives a real atomic transaction.
-  const erase = () => {
-    const authored = db.select({ id: proposals.id }).from(proposals).where(eq(proposals.authorId, user.id)).all();
+  await db.transaction(async (tx) => {
+    const authored = await tx
+      .select({ id: proposals.id })
+      .from(proposals)
+      .where(eq(proposals.authorId, user.id));
     for (const p of authored) {
-      db.delete(sources).where(eq(sources.proposalId, p.id)).run();
-      db.delete(snapshots).where(eq(snapshots.proposalId, p.id)).run();
-      db.delete(comments).where(eq(comments.proposalId, p.id)).run();
-      db.delete(votes).where(eq(votes.proposalId, p.id)).run();
-      db.delete(reports).where(eq(reports.proposalId, p.id)).run();
-      db.delete(proposals).where(eq(proposals.id, p.id)).run();
+      await tx.delete(sources).where(eq(sources.proposalId, p.id));
+      await tx.delete(snapshots).where(eq(snapshots.proposalId, p.id));
+      await tx.delete(comments).where(eq(comments.proposalId, p.id));
+      await tx.delete(votes).where(eq(votes.proposalId, p.id));
+      await tx.delete(reports).where(eq(reports.proposalId, p.id));
+      await tx.delete(proposals).where(eq(proposals.id, p.id));
     }
-    db.delete(reports).where(eq(reports.userId, user.id)).run();
-    db.delete(comments).where(eq(comments.userId, user.id)).run();
-    db.delete(votes).where(eq(votes.userId, user.id)).run();
-    db.delete(passwordResetTokens).where(eq(passwordResetTokens.userId, user.id)).run();
-    db.delete(users).where(eq(users.id, user.id)).run();
-  };
-
-  let committed = false;
-  db.$client.exec("BEGIN");
-  try {
-    erase();
-    db.$client.exec("COMMIT");
-    committed = true;
-  } finally {
-    if (!committed) db.$client.exec("ROLLBACK");
-  }
+    await tx.delete(reports).where(eq(reports.userId, user.id));
+    await tx.delete(comments).where(eq(comments.userId, user.id));
+    await tx.delete(votes).where(eq(votes.userId, user.id));
+    await tx.delete(passwordResetTokens).where(eq(passwordResetTokens.userId, user.id));
+    await tx.delete(users).where(eq(users.id, user.id));
+  });
 
   await destroySession();
   revalidatePath("/");

@@ -1,5 +1,4 @@
-import { sqlite } from "@/lib/db";
-import { db } from "@/lib/db";
+import { db, sqliteClient } from "@/lib/db";
 import { migrate } from "@/lib/db/migrate";
 import { users, proposals, votes, comments, snapshots, sources } from "@/lib/db/schema";
 import { slugify } from "@/lib/utils";
@@ -18,10 +17,10 @@ const rand = mulberry32(20260822);
 const rid = () => crypto.randomUUID();
 const DAY = 86400000;
 
-migrate();
+await migrate();
 
-sqlite.exec(
-  "DELETE FROM reports; DELETE FROM sources; DELETE FROM snapshots; DELETE FROM comments; DELETE FROM votes; DELETE FROM proposals; DELETE FROM users;"
+await sqliteClient.execute(
+  "DELETE FROM reports; DELETE FROM sources; DELETE FROM snapshots; DELETE FROM comments; DELETE FROM votes; DELETE FROM proposals; DELETE FROM password_reset_tokens; DELETE FROM users;"
 );
 
 const FIRST = ["Luca","Giulia","Marco","Sara","Alessandro","Chiara","Matteo","Elena","Francesco","Martina","Davide","Alessia","Simone","Valentina","Andrea","Federica","Riccardo","Beatrice","Tommaso","Camilla","Gabriele","Arianna","Stefano","Sofia","Nicola","Rebecca","Filippo","Emma","Pietro","Anna"];
@@ -318,31 +317,23 @@ for (const [slug, srcs] of SRC) {
   }
 }
 
-function chunkInsert<T extends Record<string, unknown>>(
+async function chunkInsert<T extends Record<string, unknown>>(
   table: Parameters<typeof db.insert>[0],
   rows: T[],
   size = 120
 ) {
   for (let i = 0; i < rows.length; i += size) {
-    db.insert(table)
-      .values(rows.slice(i, i + size))
-      .run();
+    await db.insert(table).values(rows.slice(i, i + size));
   }
 }
 
-sqlite.exec("BEGIN");
-try {
-  chunkInsert(users, userRows);
-  chunkInsert(proposals, proposalRows);
-  chunkInsert(votes, voteRows as unknown as (typeof votes.$inferInsert)[], 100);
-  chunkInsert(comments, commentRows as unknown as (typeof comments.$inferInsert)[]);
-  chunkInsert(snapshots, snapRows as unknown as (typeof snapshots.$inferInsert)[]);
-  chunkInsert(sources, sourceRows as unknown as (typeof sources.$inferInsert)[]);
-  sqlite.exec("COMMIT");
-  console.log(
-    `Seeded: ${userRows.length} users, ${proposalRows.length} proposals, ${voteRows.length} votes, ${commentRows.length} comments, ${snapRows.length} snapshots, ${sourceRows.length} sources`
-  );
-} catch (e) {
-  sqlite.exec("ROLLBACK");
-  throw e;
-}
+await chunkInsert(users, userRows);
+await chunkInsert(proposals, proposalRows);
+await chunkInsert(votes, voteRows as unknown as (typeof votes.$inferInsert)[], 80);
+await chunkInsert(comments, commentRows as unknown as (typeof comments.$inferInsert)[]);
+await chunkInsert(snapshots, snapRows as unknown as (typeof snapshots.$inferInsert)[]);
+await chunkInsert(sources, sourceRows as unknown as (typeof sources.$inferInsert)[]);
+
+console.log(
+  `Seeded: ${userRows.length} users, ${proposalRows.length} proposals, ${voteRows.length} votes, ${commentRows.length} comments, ${snapRows.length} snapshots, ${sourceRows.length} sources`
+);

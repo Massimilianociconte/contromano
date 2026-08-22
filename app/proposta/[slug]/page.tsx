@@ -63,14 +63,12 @@ export default async function ProposalPage({ params }: { params: Params }) {
     getUserVoteKinds(p.id, user?.id),
   ]);
 
-  // view increment (better-sqlite3 is synchronous: negligible cost, keeps
-  // the response non-streamed so notFound() can set a real 404 status)
-  try {
-    db.update(proposals)
-      .set({ viewsCount: sql`${proposals.viewsCount} + 1` })
-      .where(eq(proposals.id, p.id))
-      .run();
-  } catch {}
+  // view increment (single awaited statement)
+  await db
+    .update(proposals)
+    .set({ viewsCount: sql`${proposals.viewsCount} + 1` })
+    .where(eq(proposals.id, p.id))
+    .catch(() => {});
 
   const pctAgree = Math.round((p.counts.agree / Math.max(1, p.counts.agree + p.counts.disagree)) * 100);
   const consensusLabel = d.consensus[p.consensus.label];
