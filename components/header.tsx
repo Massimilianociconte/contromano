@@ -85,7 +85,7 @@ export function Header({
           {user ? (
             <UserMenu user={user} d={d} />
           ) : (
-            <Link href={lp("/accedi")} className="btn btn-ghost !px-2.5 !py-2 text-sm" style={{ color: "var(--muted)" }}>
+            <Link href={lp("/accedi")} className="btn btn-secondary !px-3.5 !py-2 text-sm">
               {d.nav.login}
             </Link>
           )}
