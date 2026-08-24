@@ -2,10 +2,10 @@
 
 import { useTransition } from "react";
 import Link from "next/link";
-import { EyeOff, Eye, Loader2, ShieldAlert } from "lucide-react";
+import { EyeOff, Eye, ShieldAlert } from "lucide-react";
 import { useLocalePath } from "@/lib/i18n/path-client";
 import type { Dict } from "@/lib/i18n";
-import { setProposalStatusAction } from "@/app/actions";
+import { setProposalStatusAction, setCommentStatusAction } from "@/app/actions";
 
 export type ReportRow = {
   id: string;
@@ -16,6 +16,9 @@ export type ReportRow = {
   proposalTitle: string | null;
   proposalSlug: string | null;
   proposalStatus: string | null;
+  commentId: string | null;
+  commentBody: string | null;
+  commentStatus: string | null;
 };
 
 export function ModerationList({ d, rows }: { d: Dict; rows: ReportRow[] }) {
@@ -63,10 +66,18 @@ export function ModerationList({ d, rows }: { d: Dict; rows: ReportRow[] }) {
           <blockquote className="mt-3 rounded-xl px-4 py-3 text-[14px] italic leading-relaxed" style={{ background: "var(--surface2)" }}>
             “{row.reason}”
           </blockquote>
-          {row.proposalSlug && row.proposalId !== undefined && (
-            <div className="mt-4 flex gap-2">
+          {row.commentBody && (
+            <div className="mt-3 rounded-xl border-l-4 p-4 text-[14px] leading-relaxed" style={{ borderColor: "var(--oppose)", background: "color-mix(in srgb, var(--oppose) 5%, var(--surface))" }}>
+              <p className="mb-1 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--oppose)" }}>
+                Commento segnalato {row.commentStatus === "hidden" ? "· nascosto" : ""}
+              </p>
+              <p className="[overflow-wrap:anywhere]">{row.commentBody}</p>
+            </div>
+          )}
+          <div className="mt-4 flex flex-wrap gap-2">
+            {row.proposalSlug && row.proposalId && (
               <ModerationButton
-                label={row.proposalStatus === "hidden" ? d.admin.publish : d.admin.hide}
+                label={(row.proposalStatus === "hidden" ? d.admin.publish : d.admin.hide) + " proposta"}
                 icon={row.proposalStatus === "hidden" ? <Eye size={14} aria-hidden /> : <EyeOff size={14} aria-hidden />}
                 onClick={() => {
                   void start(() => {
@@ -75,8 +86,20 @@ export function ModerationList({ d, rows }: { d: Dict; rows: ReportRow[] }) {
                 }}
                 danger={row.proposalStatus !== "hidden"}
               />
-            </div>
-          )}
+            )}
+            {row.commentId && (
+              <ModerationButton
+                label={(row.commentStatus === "hidden" ? d.admin.publish : d.admin.hide) + " commento"}
+                icon={row.commentStatus === "hidden" ? <Eye size={14} aria-hidden /> : <EyeOff size={14} aria-hidden />}
+                onClick={() => {
+                  void start(() => {
+                    void setCommentStatusAction(row.commentId!, row.commentStatus === "hidden" ? "published" : "hidden");
+                  });
+                }}
+                danger={row.commentStatus !== "hidden"}
+              />
+            )}
+          </div>
         </li>
       ))}
     </ul>
@@ -105,6 +128,46 @@ function ModerationButton({
   );
 }
 
-export function PendingSpinner() {
-  return <Loader2 size={15} className="animate-spin" aria-hidden />;
+export type LogEntry = {
+  id: string;
+  action: string;
+  adminName: string | null;
+  proposalSlug: string | null;
+  createdAt: Date;
+};
+
+export function ModerationLogList({ entries }: { entries: LogEntry[] }) {
+  const label: Record<string, string> = {
+    hide_proposal: "proposta nascosta",
+    publish_proposal: "proposta ripubblicata",
+    hide_comment: "commento nascosto",
+    publish_comment: "commento ripubblicato",
+    auto_quarantine: "auto-quarantena (≥3 segnalazioni)",
+  };
+  return (
+    <ul className="card divide-y overflow-hidden" style={{ borderColor: "var(--line)" }}>
+      {entries.map((e) => (
+        <li key={e.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 px-5 py-3.5 text-[13px]">
+          <span
+            className="pill"
+            style={
+              e.action === "auto_quarantine"
+                ? { background: "var(--cat-sottovalutato-soft)", color: "var(--gold)" }
+                : { background: "var(--surface2)", color: "var(--muted)" }
+            }
+          >
+            {label[e.action] ?? e.action}
+          </span>
+          {e.proposalSlug && (
+            <Link href={`/proposta/${e.proposalSlug}`} className="truncate font-medium underline decoration-line underline-offset-4 hover:decoration-ink">
+              {e.proposalSlug}
+            </Link>
+          )}
+          <span className="ml-auto text-faint">
+            {e.adminName ?? "sistema"} · {new Date(e.createdAt).toLocaleString("it-IT")}
+          </span>
+        </li>
+      ))}
+    </ul>
+  );
 }

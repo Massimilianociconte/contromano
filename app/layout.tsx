@@ -8,6 +8,7 @@ import { DictProvider } from "@/lib/i18n/client";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { getCurrentUser } from "@/lib/auth";
+import { Analytics } from "@vercel/analytics/react";
 
 export const preferredRegion = "fra1";
 
@@ -133,6 +134,7 @@ export default async function RootLayout({
           <main id="main">{children}</main>
           <Footer d={d} lang={lang} />
         </DictProvider>
+        <Analytics />
       </body>
     </html>
   );

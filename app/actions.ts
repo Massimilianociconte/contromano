@@ -10,8 +10,10 @@ import {
   users,
   snapshots,
   passwordResetTokens,
+  moderationLog,
 } from "@/lib/db/schema";
-import { and, eq, gt, isNull } from "drizzle-orm";
+import { and, eq, gt, isNull, sql } from "drizzle-orm";
+import { captureError } from "@/lib/telemetry";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
@@ -153,7 +155,8 @@ export async function toggleVoteAction(proposalId: string, kind: string): Promis
     revalidatePath("/esplora");
     revalidatePath("/classifiche");
     return { ok: true, active: true };
-  } catch {
+  } catch (e) {
+    captureError(e, { scope: "toggleVote", proposalId, kind });
     return { ok: false, active: false };
   }
 }
@@ -185,7 +188,9 @@ export async function addCommentAction(
   }
 }
 
-export async function reportAction(proposalId: string, reason: string): Promise<{ ok: boolean }> {
+const AUTO_QUARANTINE_THRESHOLD = 3;
+
+export async function reportAction(proposalId: string, reason: string): Promise<{ ok: boolean; quarantined?: boolean }> {
   const user = await getCurrentUser();
   if (!user) return { ok: false };
   if (!rateLimit(`report:${user.id}`, 5, 3600_000)) return { ok: false };
@@ -197,8 +202,35 @@ export async function reportAction(proposalId: string, reason: string): Promise<
       reason: reason.slice(0, 500),
       createdAt: new Date(),
     });
-    return { ok: true };
-  } catch {
+
+    // Auto-quarantena intelligente: ≥3 segnalazioni da utenti DISTINCTI nascondono
+    // la proposta in attesa di revisione admin (già esclusa dalle viste pubbliche).
+    const distinct = await db
+      .select({ n: sql<number>`count(distinct user_id)` })
+      .from(reports)
+      .where(eq(reports.proposalId, proposalId));
+    let quarantined = false;
+    if (Number(distinct[0].n) >= AUTO_QUARANTINE_THRESHOLD) {
+      const current = await db
+        .select({ status: proposals.status })
+        .from(proposals)
+        .where(eq(proposals.id, proposalId))
+        .limit(1);
+      if (current[0]?.status === "published") {
+        await db.update(proposals).set({ status: "hidden" }).where(eq(proposals.id, proposalId));
+        await db.insert(moderationLog).values({
+          id: rid(),
+          adminId: null,
+          action: "auto_quarantine",
+          proposalId,
+          createdAt: new Date(),
+        });
+        quarantined = true;
+      }
+    }
+    return { ok: true, quarantined };
+  } catch (e) {
+    captureError(e, { scope: "reportAction", proposalId });
     return { ok: false };
   }
 }
@@ -384,15 +416,24 @@ export async function setProposalStatusAction(
   proposalId: string,
   status: "published" | "hidden"
 ): Promise<{ ok: boolean }> {
-  if (!(await requireAdmin())) return { ok: false };
+  const admin = await requireAdmin();
+  if (!admin) return { ok: false };
   try {
     await db.update(proposals).set({ status }).where(eq(proposals.id, proposalId));
+    await db.insert(moderationLog).values({
+      id: rid(),
+      adminId: admin.id,
+      action: status === "hidden" ? "hide_proposal" : "publish_proposal",
+      proposalId,
+      createdAt: new Date(),
+    });
     revalidatePath("/admin/segnalazioni");
     revalidatePath("/");
     revalidatePath("/esplora");
     revalidatePath("/classifiche");
     return { ok: true };
-  } catch {
+  } catch (e) {
+    captureError(e, { scope: "setProposalStatus", proposalId, status });
     return { ok: false };
   }
 }
@@ -401,12 +442,21 @@ export async function setCommentStatusAction(
   commentId: string,
   status: "published" | "hidden"
 ): Promise<{ ok: boolean }> {
-  if (!(await requireAdmin())) return { ok: false };
+  const admin = await requireAdmin();
+  if (!admin) return { ok: false };
   try {
     await db.update(comments).set({ status }).where(eq(comments.id, commentId));
+    await db.insert(moderationLog).values({
+      id: rid(),
+      adminId: admin.id,
+      action: status === "hidden" ? "hide_comment" : "publish_comment",
+      commentId,
+      createdAt: new Date(),
+    });
     revalidatePath("/admin/segnalazioni");
     return { ok: true };
-  } catch {
+  } catch (e) {
+    captureError(e, { scope: "setCommentStatus", commentId, status });
     return { ok: false };
   }
 }

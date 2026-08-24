@@ -82,6 +82,15 @@ export const sources = sqliteTable("sources", {
   label: text("label").default("").notNull(),
 });
 
+export const moderationLog = sqliteTable("moderation_log", {
+  id: text("id").primaryKey(),
+  adminId: text("admin_id"),
+  action: text("action").notNull(),
+  proposalId: text("proposal_id"),
+  commentId: text("comment_id"),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+});
+
 export const reports = sqliteTable("reports", {
   id: text("id").primaryKey(),
   proposalId: text("proposal_id").references(() => proposals.id),

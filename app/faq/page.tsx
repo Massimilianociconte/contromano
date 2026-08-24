@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getI18n } from "@/lib/i18n";
 import { faqSections } from "@/lib/faq";
-import { localePath } from "@/lib/i18n";
+import { localePath } from "@/lib/i18n/path";
 
 export async function generateMetadata(): Promise<Metadata> {
   const { lang } = await getI18n();

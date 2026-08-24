@@ -3,8 +3,8 @@ import { redirect } from "next/navigation";
 import { ShieldAlert } from "lucide-react";
 import { getI18n, localePath } from "@/lib/i18n";
 import { getCurrentUser } from "@/lib/auth";
-import { getReportsForModeration } from "@/lib/queries";
-import { ModerationList } from "@/components/admin/moderation-list";
+import { getModerationLog, getReportsForModeration } from "@/lib/queries";
+import { ModerationList, ModerationLogList } from "@/components/admin/moderation-list";
 
 export const metadata: Metadata = { title: "Moderazione", robots: { index: false } };
 
@@ -21,6 +21,7 @@ export default async function AdminReportsPage() {
   }
 
   const reports = await getReportsForModeration();
+  const [log] = await Promise.all([getModerationLog()]);
   const rows = reports.map((r) => ({
     id: r.r.id,
     reason: r.r.reason,
@@ -30,6 +31,9 @@ export default async function AdminReportsPage() {
     proposalTitle: r.proposalTitle,
     proposalSlug: r.proposalSlug,
     proposalStatus: r.proposalStatus,
+    commentId: r.r.commentId,
+    commentBody: r.commentBody,
+    commentStatus: r.commentStatus,
   }));
 
   return (
@@ -41,6 +45,21 @@ export default async function AdminReportsPage() {
         <p className="mt-2 text-muted">{d.admin.subtitle}</p>
       </header>
       <ModerationList d={d} rows={rows} />
+
+      {log.length > 0 && (
+        <section className="mt-14">
+          <h2 className="font-display mb-5 text-2xl font-semibold">Audit log</h2>
+          <ModerationLogList
+            entries={log.map((e) => ({
+              id: e.l.id,
+              action: e.l.action,
+              adminName: e.adminName,
+              proposalSlug: e.proposalSlug,
+              createdAt: e.l.createdAt,
+            }))}
+          />
+        </section>
+      )}
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import "server-only";
 import { db } from "@/lib/db";
-import { proposals, votes, comments, snapshots, sources, users, reports } from "@/lib/db/schema";
+import { proposals, votes, comments, snapshots, sources, users, reports, moderationLog } from "@/lib/db/schema";
 import { and, desc, eq, gte, isNull, sql, inArray } from "drizzle-orm";
 import {
   computeConsensus,
@@ -458,13 +458,30 @@ export async function getReportsForModeration(limit = 100) {
       proposalTitle: proposals.title,
       proposalSlug: proposals.slug,
       proposalStatus: proposals.status,
+      commentBody: comments.body,
+      commentStatus: comments.status,
     })
     .from(reports)
     .innerJoin(users, eq(users.id, reports.userId))
     .leftJoin(proposals, eq(proposals.id, reports.proposalId))
+    .leftJoin(comments, eq(comments.id, reports.commentId))
     .orderBy(desc(reports.createdAt))
     .limit(limit);
   return rows;
+}
+
+export async function getModerationLog(limit = 25) {
+  return db
+    .select({
+      l: moderationLog,
+      adminName: users.name,
+      proposalSlug: proposals.slug,
+    })
+    .from(moderationLog)
+    .leftJoin(users, eq(users.id, moderationLog.adminId))
+    .leftJoin(proposals, eq(proposals.id, moderationLog.proposalId))
+    .orderBy(desc(moderationLog.createdAt))
+    .limit(limit);
 }
 
 export async function getPublishedProposalSlugs(limit = 500) {
