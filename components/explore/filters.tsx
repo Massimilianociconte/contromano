@@ -3,7 +3,7 @@
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useState, useTransition } from "react";
 import { Search, X, RotateCcw } from "lucide-react";
-import { useDict } from "@/lib/i18n/client";
+import { useDict, useLocalePath } from "@/lib/i18n/client";
 import { CATEGORIES, SECTORS } from "@/lib/constants";
 
 export function ExploreFilters({
@@ -17,12 +17,13 @@ export function ExploreFilters({
   const params = useSearchParams();
   const [pending, start] = useTransition();
   const [q, setQ] = useState(params.get("q") ?? "");
+  const lp = useLocalePath();
 
   function update(key: string, value: string | null) {
     const sp = new URLSearchParams(params.toString());
     if (value) sp.set(key, value);
     else sp.delete(key);
-    start(() => router.push(`${pathname}?${sp.toString()}`, { scroll: false }));
+    start(() => router.push(lp(`${pathname}?${sp.toString()}`), { scroll: false }));
   }
 
   const activeCat = params.get("cat");
@@ -107,7 +108,7 @@ export function ExploreFilters({
         </div>
 
         {hasFilters && (
-          <button onClick={() => start(() => router.push(pathname))} className="pill border text-faint hover:text-ink" style={{ borderColor: "var(--line)" }}>
+          <button onClick={() => start(() => router.push(lp(pathname)))} className="pill border text-faint hover:text-ink" style={{ borderColor: "var(--line)" }}>
             <RotateCcw size={12} aria-hidden /> {d.common.resetFilters}
           </button>
         )}

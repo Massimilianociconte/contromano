@@ -14,6 +14,7 @@ import {
   HelpCircle,
   Loader2,
 } from "lucide-react";
+import { useLocalePath } from "@/lib/i18n/path-client";
 import type { Dict } from "@/lib/i18n";
 import { addCommentAction } from "@/app/actions";
 import { COMMENT_KINDS, type CommentKind } from "@/lib/constants";
@@ -58,6 +59,7 @@ export function Discussion({
   const [, start] = useTransition();
   const [extra, setExtra] = useState<CommentItem[]>([]);
   const router = useRouter();
+  const lp = useLocalePath();
 
   const all = [...extra, ...items];
   const visible = filter ? all.filter((c) => c.kind === filter) : all;
@@ -206,7 +208,7 @@ export function Discussion({
                 >
                   <div className="mb-2.5 flex flex-wrap items-center gap-2.5">
                     {c.authorUsername ? (
-                      <Link href={`/profilo/${c.authorUsername}`} className="flex items-center gap-2 text-sm font-semibold hover:underline">
+                      <Link href={lp(`/profilo/${c.authorUsername}`)} className="flex items-center gap-2 text-sm font-semibold hover:underline">
                         <Avatar name={c.authorName} seed={c.authorUsername} size={26} />
                         {c.authorName}
                       </Link>

@@ -1,5 +1,5 @@
 import "server-only";
-import { cookies, headers } from "next/headers";
+import { headers } from "next/headers";
 import { cache } from "react";
 import { it, type Dict } from "./it";
 import { en } from "./en";
@@ -13,16 +13,16 @@ export function getDict(lang: Lang): Dict {
   return dicts[lang];
 }
 
+/**
+ * La lingua è determinata SOLO dall'URL: il proxy imposta x-lang per /en/….
+ * Nessun fallback sul cookie — evita siti "appiccicati" all'inglese.
+ */
 export const getLang = cache(async (): Promise<Lang> => {
-  // URL-based locale (set by proxy for /en/...) wins over cookie: it is what
-  // crawlers see and what hreflang alternates point to.
-  try {
-    const h = await headers();
-    if (h.get("x-lang") === "en") return "en";
-  } catch {}
-  const store = await cookies();
-  return store.get("lang")?.value === "en" ? "en" : "it";
+  const h = await headers();
+  return h.get("x-lang") === "en" ? "en" : "it";
 });
+
+export { localePath } from "./path";
 
 export const getI18n = cache(async () => {
   const lang = await getLang();

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { ShieldAlert } from "lucide-react";
-import { getI18n } from "@/lib/i18n";
+import { getI18n, localePath } from "@/lib/i18n";
 import { getCurrentUser } from "@/lib/auth";
 import { getReportsForModeration } from "@/lib/queries";
 import { ModerationList } from "@/components/admin/moderation-list";
@@ -9,8 +9,8 @@ import { ModerationList } from "@/components/admin/moderation-list";
 export const metadata: Metadata = { title: "Moderazione", robots: { index: false } };
 
 export default async function AdminReportsPage() {
-  const [{ d }, user] = await Promise.all([getI18n(), getCurrentUser()]);
-  if (!user) redirect("/accedi?next=/admin/segnalazioni");
+  const [{ lang, d }, user] = await Promise.all([getI18n(), getCurrentUser()]);
+  if (!user) redirect(localePath(lang, "/accedi?next=/admin/segnalazioni"));
   if (user.role !== "admin") {
     return (
       <div className="mx-auto flex min-h-[60dvh] max-w-[600px] flex-col items-center justify-center gap-4 px-5 text-center">

@@ -6,7 +6,7 @@ import type { ProposalCard as CardData } from "@/lib/queries";
 import { CategoryBadge } from "@/components/ui/primitives";
 import { ConsensusDonut, VoteBars, Sparkline } from "@/components/ui/charts";
 import { formatCompact, timeAgo } from "@/lib/utils";
-import { useDict } from "@/lib/i18n/client";
+import { useDict, useLocalePath } from "@/lib/i18n/client";
 
 export function ProposalCard({
   p,
@@ -16,6 +16,7 @@ export function ProposalCard({
   showAuthor?: boolean;
 }) {
   const d = useDict();
+  const lp = useLocalePath();
   const pctAgree = Math.round(
     (p.counts.agree / Math.max(1, p.counts.agree + p.counts.disagree)) * 100
   );
@@ -24,7 +25,7 @@ export function ProposalCard({
   const place = [p.city, p.country].filter(Boolean).join(", ");
 
   return (
-    <Link href={`/proposta/${p.slug}`} className="card card-hover group flex h-full flex-col p-5 sm:p-6">
+    <Link href={lp(`/proposta/${p.slug}`)} className="card card-hover group flex h-full flex-col p-5 sm:p-6">
       <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-2">
         <CategoryBadge category={p.category} label={d.category[p.category]} size="sm" />
         <div className="flex flex-wrap items-center justify-end gap-x-2 gap-y-1.5">
@@ -119,9 +120,10 @@ export function RankRow({
   series?: number[];
 }) {
   const d = useDict();
+  const lp = useLocalePath();
   return (
     <Link
-      href={`/proposta/${p.slug}`}
+      href={lp(`/proposta/${p.slug}`)}
       className="group flex items-center gap-4 border-b px-4 py-5 transition-colors last:border-b-0 hover:bg-[var(--surface2)] sm:gap-6 sm:px-6"
     >
       <span

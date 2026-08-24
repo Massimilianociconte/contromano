@@ -21,6 +21,7 @@ import { ProposalCard, RankRow } from "@/components/proposal-card";
 import { QuestionOfDay, StatBand } from "@/components/home/featured";
 import { SectionHeader } from "@/components/ui/primitives";
 import { SECTORS, CATEGORY_META, CATEGORIES } from "@/lib/constants";
+import { localePath } from "@/lib/i18n";
 
 const CAT_ICONS = {
   non_funziona: CircleSlash,
@@ -31,8 +32,9 @@ const CAT_ICONS = {
 } as const;
 
 export default async function HomePage() {
-  const { d } = await getI18n();
-  
+  const { lang, d } = await getI18n();
+  const lp = (path: string) => localePath(lang, path);
+
 
   const [stats, trending, top, ideas, undervalued, fresh, global_, local] = await Promise.all([
     getPlatformStats(),
@@ -83,11 +85,11 @@ export default async function HomePage() {
           {d.hero.subtitle}
         </p>
         <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
-          <Link href="/proponi" className="btn btn-primary btn-lg">
+          <Link href={lp("/proponi")} className="btn btn-primary btn-lg">
             {d.hero.ctaPrimary}
             <ArrowRight size={17} aria-hidden />
           </Link>
-          <Link href="/esplora" className="btn btn-secondary btn-lg">
+          <Link href={lp("/esplora")} className="btn btn-secondary btn-lg">
             {d.hero.ctaSecondary}
           </Link>
         </div>
@@ -111,7 +113,7 @@ export default async function HomePage() {
           <SectionHeader
             kicker={d.common.trending}
             title={d.home.rising}
-            href="/classifiche?tab=trending"
+            href={lp("/classifiche?tab=trending")}
             linkLabel={d.common.seeAll}
           />
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -129,7 +131,7 @@ export default async function HomePage() {
             <SectionHeader
               kicker="🏆 Top"
               title={d.rankings.tabTop}
-              href="/classifiche?tab=top"
+              href={lp("/classifiche?tab=top")}
               linkLabel={d.common.seeAll}
               accent="var(--gold)"
             />
@@ -145,7 +147,7 @@ export default async function HomePage() {
                 <SectionHeader
                   kicker="💡"
                   title={d.home.ideas}
-                  href="/classifiche?tab=ideas"
+                  href={lp("/classifiche?tab=ideas")}
                   accent="var(--idea)"
                 />
                 <div className="flex flex-col gap-4">
@@ -166,7 +168,7 @@ export default async function HomePage() {
             <SectionHeader
               kicker="🚨"
               title={d.home.undervalued}
-              href="/classifiche?tab=undervalued"
+              href={lp("/classifiche?tab=undervalued")}
               accent="var(--gold)"
             />
             <div className="flex flex-col gap-4">
@@ -193,7 +195,7 @@ export default async function HomePage() {
         <section className="mb-20 grid gap-8 lg:grid-cols-2">
           {global_.length > 0 && (
             <div className="min-w-0">
-              <SectionHeader kicker={<Globe2 size={15} />} title={d.home.global} accent="var(--info)" href="/classifiche?tab=global" />
+              <SectionHeader kicker={<Globe2 size={15} />} title={d.home.global} accent="var(--info)" href={lp("/classifiche?tab=global")} />
               <div className="flex flex-col gap-4">
                 {global_.slice(0, 2).map((p) => (
                   <ProposalCard key={p.id} p={p} showAuthor={false} />
@@ -203,7 +205,7 @@ export default async function HomePage() {
           )}
           {local.length > 0 && (
             <div className="min-w-0">
-              <SectionHeader kicker={<MapPin size={15} />} title={d.home.local} accent="var(--consensus)" href="/classifiche?tab=local" />
+              <SectionHeader kicker={<MapPin size={15} />} title={d.home.local} accent="var(--consensus)" href={lp("/classifiche?tab=local")} />
               <div className="flex flex-col gap-4">
                 {local.slice(0, 2).map((p) => (
                   <ProposalCard key={p.id} p={p} showAuthor={false} />
@@ -220,7 +222,7 @@ export default async function HomePage() {
           <SectionHeader
             kicker="🆕"
             title={d.home.fresh}
-            href="/esplora?sort=recent"
+            href={lp("/esplora?sort=recent")}
             linkLabel={d.common.seeAll}
             accent="var(--idea)"
           />
@@ -242,7 +244,7 @@ export default async function HomePage() {
             return (
               <Link
                 key={cat}
-                href={`/esplora?cat=${cat}`}
+                href={lp(`/esplora?cat=${cat}`)}
                 className="card card-hover group p-5"
                 style={{ background: `color-mix(in srgb, ${meta.soft} 55%, var(--surface))` }}
               >
@@ -279,7 +281,7 @@ export default async function HomePage() {
             </p>
           </div>
           <Link
-            href="/proponi"
+            href={lp("/proponi")}
             className="mt-8 inline-flex items-center gap-2 self-start rounded-full border px-5 py-2.5 text-sm font-semibold transition-transform hover:-translate-y-0.5"
             style={{ borderColor: "color-mix(in srgb, var(--paper) 30%, transparent)" }}
           >
@@ -316,7 +318,7 @@ export default async function HomePage() {
           {SECTORS.filter((s) => s !== "altro").map((s) => (
             <Link
               key={s}
-              href={`/esplora?sector=${s}`}
+              href={lp(`/esplora?sector=${s}`)}
               className="pill transition-all hover:-translate-y-0.5"
               style={{ border: "1px solid var(--line)", background: "var(--surface)" }}
             >

@@ -3,6 +3,7 @@
 import { useTransition } from "react";
 import Link from "next/link";
 import { EyeOff, Eye, Loader2, ShieldAlert } from "lucide-react";
+import { useLocalePath } from "@/lib/i18n/path-client";
 import type { Dict } from "@/lib/i18n";
 import { setProposalStatusAction } from "@/app/actions";
 
@@ -19,6 +20,7 @@ export type ReportRow = {
 
 export function ModerationList({ d, rows }: { d: Dict; rows: ReportRow[] }) {
   const [pending, start] = useTransition();
+  const lp = useLocalePath();
 
   if (rows.length === 0) {
     return (
@@ -35,7 +37,7 @@ export function ModerationList({ d, rows }: { d: Dict; rows: ReportRow[] }) {
         <li key={row.id} className="card p-5 md:p-6">
           <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-[13px] text-muted">
             {row.proposalSlug ? (
-              <Link href={`/proposta/${row.proposalSlug}`} className="font-semibold text-ink underline underline-offset-4 hover:no-underline">
+              <Link href={lp(`/proposta/${row.proposalSlug}`)} className="font-semibold text-ink underline underline-offset-4 hover:no-underline">
                 {row.proposalTitle}
               </Link>
             ) : (

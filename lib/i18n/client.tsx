@@ -27,3 +27,14 @@ export function useLang() {
   const ctx = useContext(DictContext);
   return ctx?.lang ?? "it";
 }
+
+/** Versione client di localePath: prefissa /en quando la lingua è inglese. */
+export function useLocalePath() {
+  const lang = useLang();
+  return (path: string) => {
+    if (lang !== "en") return path;
+    const [pathname, query = ""] = path.split("?");
+    const prefixed = "/en" + (pathname === "/" ? "/" : pathname);
+    return query ? `${prefixed}?${query}` : prefixed;
+  };
+}

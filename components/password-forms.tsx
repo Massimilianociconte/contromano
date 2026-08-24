@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import Link from "next/link";
 import { Loader2 } from "lucide-react";
+import { useLocalePath } from "@/lib/i18n/path-client";
 import type { Dict } from "@/lib/i18n";
 import {
   requestPasswordResetAction,
@@ -11,6 +12,7 @@ import {
 } from "@/app/actions";
 
 export function ForgotForm({ d }: { d: Dict }) {
+  const lp = useLocalePath();
   const [state, formAction, pending] = useActionState<FormState, FormData>(
     (prev, fd) => requestPasswordResetAction(d, prev, fd),
     {}
@@ -60,7 +62,7 @@ export function ForgotForm({ d }: { d: Dict }) {
 
         <p className="mt-6 text-center text-sm text-muted">
           {d.forgot.noAccount}{" "}
-          <Link href="/registrati" className="font-semibold text-ink underline underline-offset-4 hover:no-underline">
+          <Link href={lp("/registrati")} className="font-semibold text-ink underline underline-offset-4 hover:no-underline">
             {d.nav.register}
           </Link>
         </p>

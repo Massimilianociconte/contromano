@@ -2,10 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getI18n } from "@/lib/i18n";
 import { faqSections } from "@/lib/faq";
+import { localePath } from "@/lib/i18n";
 
 export async function generateMetadata(): Promise<Metadata> {
   const { lang } = await getI18n();
   const isEn = lang === "en";
+  const lp = (path: string) => localePath(lang, path);
   return {
     title: isEn ? "FAQ — Everything about Contromano, answered" : "FAQ — Tutto su Contromano, spiegato",
     description: isEn
@@ -28,6 +30,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function FaqPage() {
   const { lang, d } = await getI18n();
   const isEn = lang === "en";
+  const lp = (path: string) => localePath(lang, path);
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "";
   const faqLd = {
@@ -142,7 +145,7 @@ export default async function FaqPage() {
             : "La migliore domanda è quella che diventa una proposta. Se qualcosa nel mondo che ti circonda non funziona, è esattamente per questo che esiste questa piattaforma."}
         </p>
         <Link
-          href="/proponi"
+          href={lp("/proponi")}
           className="mt-5 inline-flex items-center gap-2 self-start rounded-full border px-5 py-2.5 text-sm font-semibold transition-transform hover:-translate-y-0.5"
           style={{ borderColor: "color-mix(in srgb, var(--paper) 30%, transparent)" }}
         >

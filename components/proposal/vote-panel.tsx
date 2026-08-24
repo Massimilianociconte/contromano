@@ -15,6 +15,7 @@ import {
 import type { Dict } from "@/lib/i18n";
 import { toggleVoteAction } from "@/app/actions";
 import { VOTE_KINDS } from "@/lib/constants";
+import { useLocalePath } from "@/lib/i18n/path-client";
 
 const ICONS = {
   agree: ThumbsUp,
@@ -59,6 +60,7 @@ export function VotePanel({
   const [, start] = useTransition();
   const [flash, setFlash] = useState<string | null>(null);
   const router = useRouter();
+  const lp = useLocalePath();
 
   function vote(kind: string) {
     if (!isAuthed) return;
@@ -79,7 +81,7 @@ export function VotePanel({
           <p className="mt-0.5 text-[13px] text-muted">{d.proposal.voteSubtitle}</p>
         </div>
         {!isAuthed && (
-          <Link href="/accedi" className="btn btn-secondary shrink-0 !py-2 text-[13px]">
+          <Link href={lp("/accedi")} className="btn btn-secondary shrink-0 !py-2 text-[13px]">
             <LogIn size={14} aria-hidden /> {d.nav.login}
           </Link>
         )}
@@ -126,7 +128,7 @@ export function VotePanel({
 
       {!isAuthed && (
         <p className="mt-4 text-center text-[13px] text-faint">
-          <Link href="/registrati" className="font-semibold underline underline-offset-2">
+          <Link href={lp("/registrati")} className="font-semibold underline underline-offset-2">
             {d.nav.register}
           </Link>{" "}
           — {d.auth.registerSubtitle}

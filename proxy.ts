@@ -1,8 +1,8 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 /**
- * URL localizzati: /en/... serve la versione inglese (header x-lang + cookie
- * persistente), così i crawler indicizzano entrambe le lingue con hreflang.
+ * URL localizzati: /en/... serve la versione inglese via header x-lang.
+ * La lingua è determinata esclusivamente dall'URL (niente cookie).
  */
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -15,13 +15,7 @@ export function proxy(request: NextRequest) {
     const headers = new Headers(request.headers);
     headers.set("x-lang", "en");
 
-    const res = NextResponse.rewrite(url, { request: { headers } });
-    res.cookies.set("lang", "en", {
-      path: "/",
-      maxAge: 60 * 60 * 24 * 365,
-      sameSite: "lax",
-    });
-    return res;
+    return NextResponse.rewrite(url, { request: { headers } });
   }
 
   return NextResponse.next();

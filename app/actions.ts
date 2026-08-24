@@ -14,7 +14,7 @@ import {
 import { and, eq, gt, isNull } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { cookies, headers } from "next/headers";
+import { headers } from "next/headers";
 import {
   createSession,
   destroySession,
@@ -27,7 +27,7 @@ import { slugify } from "@/lib/utils";
 import { CATEGORIES, COMMENT_KINDS, SECTORS, VOTE_KINDS } from "@/lib/constants";
 import { findDuplicates } from "@/lib/queries";
 import { sendMail, mailerConfigured } from "@/lib/mail";
-import type { Dict, Lang } from "@/lib/i18n";
+import type { Dict } from "@/lib/i18n";
 
 export type FormState = { error?: string; ok?: boolean; debugLink?: string };
 
@@ -53,13 +53,6 @@ function safeHttpUrl(url: string): boolean {
 async function clientIp(): Promise<string> {
   const h = await headers();
   return h.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "local";
-}
-
-export async function setLangAction(to: Lang, next: string) {
-  const langTo: Lang = to === "en" ? "en" : "it";
-  const store = await cookies();
-  store.set("lang", langTo, { maxAge: 60 * 60 * 24 * 365, path: "/", sameSite: "lax" });
-  redirect(safeInternalPath(next));
 }
 
 export async function registerAction(
@@ -489,5 +482,7 @@ export async function createProposalAction(
   revalidatePath("/");
   revalidatePath("/esplora");
   revalidatePath("/classifiche");
-  redirect(`/proposta/${slug}`);
+  const h = await headers();
+  const prefix = h.get("x-lang") === "en" ? "/en" : "";
+  redirect(`${prefix}/proposta/${slug}`);
 }

@@ -3,10 +3,12 @@
 import { useActionState } from "react";
 import Link from "next/link";
 import { Loader2 } from "lucide-react";
+import { useLocalePath } from "@/lib/i18n/path-client";
 import type { Dict } from "@/lib/i18n";
 import { loginAction, registerAction, type FormState } from "@/app/actions";
 
 export function AuthForm({ mode, d, next }: { mode: "login" | "register"; d: Dict; next?: string }) {
+  const lp = useLocalePath();
   const action = mode === "login" ? loginAction : registerAction;
   const [state, formAction, pending] = useActionState<FormState, FormData>(
     (prev, fd) => action(d, prev, fd),
@@ -61,7 +63,7 @@ export function AuthForm({ mode, d, next }: { mode: "login" | "register"; d: Dic
         {mode === "login" && (
           <>
             <div className="flex justify-end">
-              <Link href="/password-dimenticata" className="text-[13px] font-semibold underline underline-offset-4 hover:no-underline" style={{ color: "var(--muted)" }}>
+              <Link href={lp("/password-dimenticata")} className="text-[13px] font-semibold underline underline-offset-4 hover:no-underline" style={{ color: "var(--muted)" }}>
                 {d.forgot.title}
               </Link>
             </div>
@@ -74,7 +76,7 @@ export function AuthForm({ mode, d, next }: { mode: "login" | "register"; d: Dic
 
       <p className="mt-6 text-center text-sm text-muted">
         {mode === "login" ? d.auth.noAccount : d.auth.hasAccount}{" "}
-        <Link href={mode === "login" ? "/registrati" : "/accedi"} className="font-semibold text-ink underline underline-offset-4 hover:no-underline">
+        <Link href={lp(mode === "login" ? "/registrati" : "/accedi")} className="font-semibold text-ink underline underline-offset-4 hover:no-underline">
           {mode === "login" ? d.nav.register : d.nav.login}
         </Link>
       </p>

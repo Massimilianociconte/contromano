@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { after } from "next/server";
 import { db } from "@/lib/db";
 import { proposals } from "@/lib/db/schema";
 import { eq, sql } from "drizzle-orm";
@@ -70,12 +71,15 @@ export default async function ProposalPage({ params }: { params: Params }) {
     getUserVoteKinds(p.id, user?.id),
   ]);
 
-  // view increment (single awaited statement)
-  await db
-    .update(proposals)
-    .set({ viewsCount: sql`${proposals.viewsCount} + 1` })
-    .where(eq(proposals.id, p.id))
-    .catch(() => {});
+  // view increment post-risposta: toglie una scrittura di rete (~1 RTT) dal
+  // percorso critico senza toccare il 404 (nessun loading.tsx su questa rotta)
+  after(async () => {
+    await db
+      .update(proposals)
+      .set({ viewsCount: sql`${proposals.viewsCount} + 1` })
+      .where(eq(proposals.id, p.id))
+      .catch(() => {});
+  });
 
   const pctAgree = Math.round((p.counts.agree / Math.max(1, p.counts.agree + p.counts.disagree)) * 100);
   const consensusLabel = d.consensus[p.consensus.label];

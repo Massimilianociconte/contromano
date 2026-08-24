@@ -9,6 +9,8 @@ import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { getCurrentUser } from "@/lib/auth";
 
+export const preferredRegion = "fra1";
+
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
 const fraunces = Fraunces({
   subsets: ["latin"],
@@ -129,7 +131,7 @@ export default async function RootLayout({
         <DictProvider d={d} lang={lang}>
           <Header d={d} lang={lang} user={user} />
           <main id="main">{children}</main>
-          <Footer d={d} />
+          <Footer d={d} lang={lang} />
         </DictProvider>
       </body>
     </html>

@@ -3,10 +3,12 @@
 import { useActionState } from "react";
 import Link from "next/link";
 import { AlertTriangle, Loader2, Trash2 } from "lucide-react";
+import { useLocalePath } from "@/lib/i18n/path-client";
 import type { Dict } from "@/lib/i18n";
 import { deleteAccountAction, type FormState } from "@/app/actions";
 
 export function DeleteAccountForm({ d }: { d: Dict }) {
+  const lp = useLocalePath();
   const [state, formAction, pending] = useActionState<FormState, FormData>(
     (prev, fd) => deleteAccountAction(d, prev, fd),
     {}
@@ -49,7 +51,7 @@ export function DeleteAccountForm({ d }: { d: Dict }) {
             {pending ? <Loader2 size={15} className="animate-spin" aria-hidden /> : <Trash2 size={15} aria-hidden />}
             {d.settings.deleteCta}
           </button>
-          <Link href={`/profilo`} className="text-sm font-medium text-muted underline underline-offset-4 hover:text-ink hover:no-underline">
+          <Link href={lp("/profilo")} className="text-sm font-medium text-muted underline underline-offset-4 hover:text-ink hover:no-underline">
             {d.settings.backToProfile}
           </Link>
         </div>

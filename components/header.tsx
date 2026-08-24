@@ -10,6 +10,7 @@ import type { SessionUser } from "@/lib/auth";
 import { LangSwitch } from "@/components/lang-switch";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Avatar } from "@/components/ui/primitives";
+import { useLocalePath } from "@/lib/i18n/path-client";
 import { logoutAction } from "@/app/actions";
 
 export function Header({
@@ -26,6 +27,7 @@ export function Header({
   const [, start] = useTransition();
   const router = useRouter();
   const pathname = usePathname();
+  const lp = useLocalePath();
 
   useEffect(() => {
     const t = setTimeout(() => setOpen(false), 0);
@@ -52,7 +54,7 @@ export function Header({
     if (!query) return;
     setQ("");
     setOpen(false);
-    router.push(`/esplora?q=${encodeURIComponent(query)}`);
+    router.push(lp(`/esplora?q=${encodeURIComponent(query)}`));
   }
 
   const nav = [
@@ -68,7 +70,7 @@ export function Header({
     >
       {/* mobile bar */}
       <div className="flex h-14 items-center gap-1.5 px-3 lg:hidden">
-        <Link href="/" className="flex min-w-0 items-center gap-2" aria-label={d.meta.name}>
+        <Link href={lp("/")} className="flex min-w-0 items-center gap-2" aria-label={d.meta.name}>
           <LogoMark size={22} />
           <span className="font-display truncate text-[18px] font-semibold tracking-[-0.02em] hidden min-[380px]:inline">
             contromano
@@ -100,7 +102,7 @@ export function Header({
 
       {/* desktop bar */}
       <div className="mx-auto hidden h-16 max-w-[1200px] items-center gap-4 px-5 lg:flex lg:h-[72px]">
-        <Link href="/" className="flex items-center gap-2.5" aria-label={d.meta.name}>
+        <Link href={lp("/")} className="flex items-center gap-2.5" aria-label={d.meta.name}>
           <LogoMark size={26} />
           <span className="font-display text-[21px] font-semibold tracking-[-0.02em]">contromano</span>
         </Link>
@@ -109,7 +111,7 @@ export function Header({
           {nav.map((n) => (
             <Link
               key={n.href}
-              href={n.href}
+              href={lp(n.href)}
               className="rounded-full px-3.5 py-1.5 text-sm font-medium text-muted transition-colors hover:bg-[var(--surface2)] hover:text-ink"
             >
               {n.label}
@@ -136,11 +138,11 @@ export function Header({
           {user ? (
             <UserMenu user={user} d={d} />
           ) : (
-            <Link href="/accedi" className="btn btn-secondary !py-2 text-sm">
+            <Link href={lp("/accedi")} className="btn btn-secondary !py-2 text-sm">
               {d.nav.login}
             </Link>
           )}
-          <Link href="/proponi" className="btn btn-primary !py-2 text-sm">
+          <Link href={lp("/proponi")} className="btn btn-primary !py-2 text-sm">
             <Plus size={15} strokeWidth={2.6} aria-hidden />
             {d.nav.propose}
           </Link>
@@ -174,7 +176,7 @@ export function Header({
               animate={{ opacity: 1 }}
               transition={{ delay: 0.05 }}
             >
-              <Link href="/" className="flex min-w-0 items-center gap-2" onClick={() => setOpen(false)}>
+              <Link href={lp("/")} className="flex min-w-0 items-center gap-2" onClick={() => setOpen(false)}>
                 <LogoMark size={22} />
                 <span className="font-display truncate text-[18px] font-semibold tracking-[-0.02em]">contromano</span>
               </Link>
@@ -251,7 +253,7 @@ export function Header({
               {user && (
                 <motion.div variants={menuItem}>
                   <Link
-                    href={`/profilo/${user.username}`}
+                    href={lp(`/profilo/${user.username}`)}
                     className="mb-3 flex items-center gap-3 rounded-2xl border p-3 transition-colors hover:bg-[var(--surface2)]"
                     style={{ borderColor: "var(--line)" }}
                     onClick={() => setOpen(false)}
@@ -267,7 +269,7 @@ export function Header({
 
               {!user && (
                 <motion.div variants={menuItem} className="mb-3">
-                  <Link href="/registrati" onClick={() => setOpen(false)} className="btn btn-secondary w-full justify-center">
+                  <Link href={lp("/registrati")} onClick={() => setOpen(false)} className="btn btn-secondary w-full justify-center">
                     {d.nav.register}
                   </Link>
                 </motion.div>
@@ -275,7 +277,7 @@ export function Header({
 
               <motion.div variants={menuItem}>
                 <Link
-                  href="/proponi"
+                  href={lp("/proponi")}
                   onClick={() => setOpen(false)}
                   className="btn btn-primary w-full justify-center !py-4 text-base"
                 >
@@ -299,7 +301,7 @@ export function Header({
                     <LogOut size={15} aria-hidden /> {d.nav.logout}
                   </button>
                 ) : (
-                  <Link href="/accedi" onClick={() => setOpen(false)} className="btn btn-secondary !py-2 text-sm">
+                  <Link href={lp("/accedi")} onClick={() => setOpen(false)} className="btn btn-secondary !py-2 text-sm">
                     {d.nav.login}
                   </Link>
                 )}
@@ -324,6 +326,7 @@ const menuItem = {
 function UserMenu({ user, d }: { user: SessionUser; d: Dict }) {
   const [open, setOpen] = useState(false);
   const [, start] = useTransition();
+  const lp = useLocalePath();
 
   return (
     <div className="relative">
@@ -354,7 +357,7 @@ function UserMenu({ user, d }: { user: SessionUser; d: Dict }) {
             }}
           >
             <Link
-              href={`/profilo/${user.username}`}
+              href={lp(`/profilo/${user.username}`)}
               onClick={() => setOpen(false)}
               role="menuitem"
               className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium hover:bg-[var(--surface2)]"
@@ -362,7 +365,7 @@ function UserMenu({ user, d }: { user: SessionUser; d: Dict }) {
               <UserIcon size={15} aria-hidden /> {d.nav.profile}
             </Link>
             <Link
-              href="/impostazioni"
+              href={lp("/impostazioni")}
               onClick={() => setOpen(false)}
               role="menuitem"
               className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium hover:bg-[var(--surface2)]"

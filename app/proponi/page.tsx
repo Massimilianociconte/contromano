@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { getI18n } from "@/lib/i18n";
+import { getI18n, localePath } from "@/lib/i18n";
 import { getCurrentUser } from "@/lib/auth";
 import { ProposeForm } from "@/components/propose/form";
 
@@ -10,8 +10,8 @@ type SP = Promise<Record<string, string | string[] | undefined>>;
 
 export default async function ProposePage({ searchParams }: { searchParams: SP }) {
   const sp = await searchParams;
-  const [{ d }, user] = await Promise.all([getI18n(), getCurrentUser()]);
-  if (!user) redirect("/accedi?next=/proponi");
+  const [{ lang, d }, user] = await Promise.all([getI18n(), getCurrentUser()]);
+  if (!user) redirect(localePath(lang, "/accedi?next=/proponi"));
   const cat = typeof sp.cat === "string" ? sp.cat : undefined;
 
   return (

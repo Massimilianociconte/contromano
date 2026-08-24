@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useEffect } from "react";
 import { RotateCcw, Home } from "lucide-react";
+import { usePathname } from "next/navigation";
+import { localePath } from "@/lib/i18n/path";
 
 export default function Error({
   error,
@@ -11,6 +13,9 @@ export default function Error({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const pathname = usePathname();
+  const lang = pathname.startsWith("/en") ? "en" : "it";
+  const homeHref = localePath(lang, "/");
   useEffect(() => {
     console.error(error);
   }, [error]);
@@ -38,7 +43,7 @@ export default function Error({
         <button onClick={reset} className="btn btn-primary">
           <RotateCcw size={15} aria-hidden /> Riprova
         </button>
-        <Link href="/" className="btn btn-secondary">
+        <Link href={homeHref} className="btn btn-secondary">
           <Home size={15} aria-hidden /> Torna alla home
         </Link>
       </div>

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { getI18n } from "@/lib/i18n";
+import { getI18n, localePath } from "@/lib/i18n";
 import { getCurrentUser } from "@/lib/auth";
 import { getUserByUsername } from "@/lib/queries";
 import { DeleteAccountForm } from "@/components/settings/delete-form";
@@ -9,8 +9,8 @@ import { ProfileForm, PasswordChangeForm } from "@/components/settings/account-f
 export const metadata: Metadata = { title: "Impostazioni", robots: { index: false } };
 
 export default async function SettingsPage() {
-  const [{ d }, user] = await Promise.all([getI18n(), getCurrentUser()]);
-  if (!user) redirect("/accedi?next=/impostazioni");
+  const [{ lang, d }, user] = await Promise.all([getI18n(), getCurrentUser()]);
+  if (!user) redirect(localePath(lang, "/accedi?next=/impostazioni"));
   const row = await getUserByUsername(user.username);
 
   return (

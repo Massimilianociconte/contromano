@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Trophy, Lightbulb, EyeOff, TrendingUp, Globe2, MapPin, Rocket } from "lucide-react";
-import { useDict } from "@/lib/i18n/client";
+import { useDict, useLocalePath } from "@/lib/i18n/client";
 import type { RankingKey } from "@/lib/queries";
 
 const TABS: { key: RankingKey; icon: typeof Trophy }[] = [
@@ -17,6 +17,7 @@ const TABS: { key: RankingKey; icon: typeof Trophy }[] = [
 
 export function RankingsTabs({ active }: { active: RankingKey }) {
   const d = useDict();
+  const lp = useLocalePath();
   const labelFor = (k: RankingKey) =>
     ({
       top: d.rankings.tabTop,
@@ -35,7 +36,7 @@ export function RankingsTabs({ active }: { active: RankingKey }) {
           return (
             <Link
               key={t.key}
-              href={`/classifiche?tab=${t.key}`}
+              href={lp(`/classifiche?tab=${t.key}`)}
               className="pill !px-4 !py-2 border transition-all hover:-translate-y-0.5"
               aria-current={isActive ? "page" : undefined}
               style={
