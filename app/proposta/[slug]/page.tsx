@@ -82,9 +82,19 @@ export default async function ProposalPage({ params }: { params: Params }) {
 
   // JSON-LD structured data for search engines
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "";
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "DiscussionForumPosting",
+  const jsonLd = [
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Home", item: siteUrl || "/" },
+        { "@type": "ListItem", position: 2, name: "Esplora", item: `${siteUrl}/esplora` },
+        { "@type": "ListItem", position: 3, name: p.title, item: `${siteUrl}/proposta/${p.slug}` },
+      ],
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "DiscussionForumPosting",
     headline: p.title,
     articleBody: `${p.problem}${description ? "\n\n" + description : ""}`,
     datePublished: p.createdAt.toISOString(),
@@ -109,7 +119,8 @@ export default async function ProposalPage({ params }: { params: Params }) {
     ...(sources.length > 0
       ? { citation: sources.map((s) => ({ "@type": "CreativeWork", url: s.url, name: s.label || s.url })) }
       : {}),
-  };
+    },
+  ];
 
   // discussion synthesis (neutral aggregation)
   const kindCounts = new Map<string, number>();
