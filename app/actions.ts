@@ -27,7 +27,7 @@ import { slugify } from "@/lib/utils";
 import { CATEGORIES, COMMENT_KINDS, SECTORS, VOTE_KINDS } from "@/lib/constants";
 import { findDuplicates } from "@/lib/queries";
 import { sendMail, mailerConfigured } from "@/lib/mail";
-import type { Dict } from "@/lib/i18n";
+
 
 export type FormState = { error?: string; ok?: boolean; debugLink?: string };
 
@@ -56,7 +56,6 @@ async function clientIp(): Promise<string> {
 }
 
 export async function registerAction(
-  d: Dict,
   _prev: FormState,
   formData: FormData
 ): Promise<FormState> {
@@ -71,13 +70,13 @@ export async function registerAction(
   const next = safeInternalPath(formData.get("next"));
 
   const ip = await clientIp();
-  if (!rateLimit(`reg:${ip}:${email}`, 5, 3600_000)) return { error: d.errors.rateLimited };
-  if (!name || !email) return { error: d.errors.generic };
-  if (username.length < 3) return { error: d.errors.generic };
-  if (password.length < 8) return { error: d.errors.passwordShort };
+  if (!rateLimit(`reg:${ip}:${email}`, 5, 3600_000)) return { error: "rateLimited" };
+  if (!name || !email) return { error: "generic" };
+  if (username.length < 3) return { error: "generic" };
+  if (password.length < 8) return { error: "passwordShort" };
 
   const existing = await db.select({ id: users.id }).from(users).where(eq(users.email, email)).limit(1);
-  if (existing[0]) return { error: d.errors.emailTaken };
+  if (existing[0]) return { error: "emailTaken" };
 
   const id = rid();
   try {
@@ -91,14 +90,13 @@ export async function registerAction(
       reputation: 0,
     });
   } catch {
-    return { error: d.errors.usernameTaken };
+    return { error: "usernameTaken" };
   }
   await createSession(id);
   redirect(next);
 }
 
 export async function loginAction(
-  d: Dict,
   _prev: FormState,
   formData: FormData
 ): Promise<FormState> {
@@ -107,12 +105,12 @@ export async function loginAction(
   const next = safeInternalPath(formData.get("next"));
 
   const ip = await clientIp();
-  if (!rateLimit(`login:${ip}:${email}`, 10, 600_000)) return { error: d.errors.rateLimited };
+  if (!rateLimit(`login:${ip}:${email}`, 10, 600_000)) return { error: "rateLimited" };
 
   const rows = await db.select().from(users).where(eq(users.email, email)).limit(1);
   const user = rows[0];
   if (!user || user.passwordHash === "-" || !(await verifyPassword(password, user.passwordHash)))
-    return { error: d.errors.invalidCredentials };
+    return { error: "invalidCredentials" };
   await createSession(user.id);
   redirect(next);
 }
@@ -221,13 +219,12 @@ async function sha256(input: string): Promise<string> {
 }
 
 export async function requestPasswordResetAction(
-  d: Dict,
   _prev: FormState,
   formData: FormData
 ): Promise<FormState> {
   const email = String(formData.get("email") ?? "").trim().toLowerCase().slice(0, 254);
   const ip = await clientIp();
-  if (!rateLimit(`pwreset:${ip}:${email}`, 5, 3600_000)) return { error: d.errors.rateLimited };
+  if (!rateLimit(`pwreset:${ip}:${email}`, 5, 3600_000)) return { error: "rateLimited" };
 
   const rows = await db.select().from(users).where(eq(users.email, email)).limit(1);
   const user = rows[0];
@@ -258,7 +255,6 @@ export async function requestPasswordResetAction(
 }
 
 export async function performPasswordResetAction(
-  d: Dict,
   _prev: FormState,
   formData: FormData
 ): Promise<FormState> {
@@ -266,9 +262,9 @@ export async function performPasswordResetAction(
   const password = String(formData.get("password") ?? "");
   const confirm = String(formData.get("confirm") ?? "");
 
-  if (!rateLimit(`pwset:${await clientIp()}`, 10, 3600_000)) return { error: d.errors.rateLimited };
-  if (password.length < 8) return { error: d.errors.passwordShort };
-  if (password !== confirm) return { error: d.errors.generic };
+  if (!rateLimit(`pwset:${await clientIp()}`, 10, 3600_000)) return { error: "rateLimited" };
+  if (password.length < 8) return { error: "passwordShort" };
+  if (password !== confirm) return { error: "generic" };
 
   const tokenHash = await sha256(token);
   const rows = await db
@@ -283,7 +279,7 @@ export async function performPasswordResetAction(
     )
     .limit(1);
   const record = rows[0];
-  if (!record) return { error: d.errors.resetInvalid };
+  if (!record) return { error: "resetInvalid" };
 
   await db.update(users).set({ passwordHash: await hashPassword(password) }).where(eq(users.id, record.userId));
   await db.update(passwordResetTokens).set({ usedAt: new Date() }).where(eq(passwordResetTokens.id, record.id));
@@ -291,13 +287,12 @@ export async function performPasswordResetAction(
 }
 
 export async function deleteAccountAction(
-  d: Dict,
   _prev: FormState,
   formData: FormData
 ): Promise<FormState> {
   const user = await getCurrentUser();
-  if (!user) return { error: d.errors.notAuthenticated };
-  if (!rateLimit(`delacc:${user.id}`, 3, 3600_000)) return { error: d.errors.rateLimited };
+  if (!user) return { error: "notAuthenticated" };
+  if (!rateLimit(`delacc:${user.id}`, 3, 3600_000)) return { error: "rateLimited" };
 
   const password = String(formData.get("password") ?? "");
   const confirmPhrase = String(formData.get("confirm") ?? "").trim();
@@ -305,8 +300,8 @@ export async function deleteAccountAction(
   const rows = await db.select().from(users).where(eq(users.id, user.id)).limit(1);
   const row = rows[0];
   if (!row || !(await verifyPassword(password, row.passwordHash)))
-    return { error: d.errors.invalidCredentials };
-  if (confirmPhrase !== "ELIMINA") return { error: d.errors.deleteConfirmWord };
+    return { error: "invalidCredentials" };
+  if (confirmPhrase !== "ELIMINA") return { error: "deleteConfirmWord" };
 
   // Full erasure: content authored by the account is removed with it.
   await db.transaction(async (tx) => {
@@ -341,17 +336,16 @@ async function requireAdmin() {
 }
 
 export async function updateProfileAction(
-  d: Dict,
   _prev: FormState,
   formData: FormData
 ): Promise<FormState> {
   const user = await getCurrentUser();
-  if (!user) return { error: d.errors.notAuthenticated };
-  if (!rateLimit(`profile:${user.id}`, 10, 600_000)) return { error: d.errors.rateLimited };
+  if (!user) return { error: "notAuthenticated" };
+  if (!rateLimit(`profile:${user.id}`, 10, 600_000)) return { error: "rateLimited" };
 
   const name = String(formData.get("name") ?? "").trim().slice(0, 60);
   const bio = String(formData.get("bio") ?? "").trim().slice(0, 280);
-  if (name.length < 2) return { error: d.errors.generic };
+  if (name.length < 2) return { error: "generic" };
 
   try {
     await db.update(users).set({ name, bio }).where(eq(users.id, user.id));
@@ -359,18 +353,17 @@ export async function updateProfileAction(
     revalidatePath(`/profilo/${user.username}`);
     return { ok: true };
   } catch {
-    return { error: d.errors.generic };
+    return { error: "generic" };
   }
 }
 
 export async function changePasswordAction(
-  d: Dict,
   _prev: FormState,
   formData: FormData
 ): Promise<FormState> {
   const session = await getCurrentUser();
-  if (!session) return { error: d.errors.notAuthenticated };
-  if (!rateLimit(`pwdchange:${session.id}`, 5, 3600_000)) return { error: d.errors.rateLimited };
+  if (!session) return { error: "notAuthenticated" };
+  if (!rateLimit(`pwdchange:${session.id}`, 5, 3600_000)) return { error: "rateLimited" };
 
   const current = String(formData.get("current") ?? "");
   const next = String(formData.get("next") ?? "");
@@ -379,9 +372,9 @@ export async function changePasswordAction(
   const rows = await db.select().from(users).where(eq(users.id, session.id)).limit(1);
   const row = rows[0];
   if (!row || row.passwordHash === "-" || !(await verifyPassword(current, row.passwordHash)))
-    return { error: d.errors.invalidCredentials };
-  if (next.length < 8) return { error: d.errors.passwordShort };
-  if (next !== confirm) return { error: d.errors.passwordMismatch };
+    return { error: "invalidCredentials" };
+  if (next.length < 8) return { error: "passwordShort" };
+  if (next !== confirm) return { error: "passwordMismatch" };
 
   await db.update(users).set({ passwordHash: await hashPassword(next) }).where(eq(users.id, session.id));
   return { ok: true };
@@ -419,13 +412,12 @@ export async function setCommentStatusAction(
 }
 
 export async function createProposalAction(
-  d: Dict,
   _prev: FormState,
   formData: FormData
 ): Promise<FormState & { slug?: string }> {
   const user = await getCurrentUser();
-  if (!user) return { error: d.errors.notAuthenticated };
-  if (!rateLimit(`propose:${user.id}`, 3, 3600_000)) return { error: d.errors.rateLimited };
+  if (!user) return { error: "notAuthenticated" };
+  if (!rateLimit(`propose:${user.id}`, 3, 3600_000)) return { error: "rateLimited" };
 
   const title = String(formData.get("title") ?? "").trim().slice(0, 110);
   const problem = String(formData.get("problem") ?? "").trim().slice(0, 600);
@@ -442,10 +434,10 @@ export async function createProposalAction(
     .filter((l) => l.length > 0 && l.length <= 2000 && safeHttpUrl(l))
     .slice(0, 5);
 
-  if (title.length < 10) return { error: d.errors.titleShort };
-  if (problem.length < 20) return { error: d.errors.problemShort };
-  if (!CATEGORIES.includes(category as never)) return { error: d.errors.generic };
-  if (!SECTORS.includes(sector as never)) return { error: d.errors.generic };
+  if (title.length < 10) return { error: "titleShort" };
+  if (problem.length < 20) return { error: "problemShort" };
+  if (!CATEGORIES.includes(category as never)) return { error: "generic" };
+  if (!SECTORS.includes(sector as never)) return { error: "generic" };
 
   let slug = slugify(title);
   const clash = await db.select({ id: proposals.id }).from(proposals).where(eq(proposals.slug, slug)).limit(1);
@@ -476,7 +468,7 @@ export async function createProposalAction(
       );
     }
   } catch {
-    return { error: d.errors.generic };
+    return { error: "generic" };
   }
 
   revalidatePath("/");

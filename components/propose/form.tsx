@@ -21,7 +21,7 @@ type Duplicate = { slug: string; title: string; problem: string; score: number }
 
 export function ProposeForm({ d, defaultCategory }: { d: Dict; defaultCategory?: string }) {
   const [state, formAction, pending] = useActionState<FormState & { slug?: string }, FormData>(
-    (prev, fd) => createProposalAction(d, prev, fd),
+    createProposalAction,
     {}
   );
   const [step, setStep] = useState(0);
@@ -371,11 +371,11 @@ export function ProposeForm({ d, defaultCategory }: { d: Dict; defaultCategory?:
             </div>
           )}
 
-          {state.error && (
+          {(() => { const msg = state.error ? ((d.errors as Record<string,string>)[state.error] ?? d.errors.generic) : undefined; return msg ? (
             <p role="alert" className="rounded-xl px-4 py-3 text-sm font-semibold" style={{ background: "var(--cat-non-funziona-soft)", color: "var(--signal)" }}>
-              {state.error}
+              {msg}
             </p>
-          )}
+          ) : null; })()}
 
           <button type="submit" disabled={pending} className="btn btn-primary btn-lg self-start">
             {pending ? <Loader2 size={16} className="animate-spin" aria-hidden /> : <ArrowRight size={16} aria-hidden />}

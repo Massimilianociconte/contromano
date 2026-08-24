@@ -9,10 +9,7 @@ import { deleteAccountAction, type FormState } from "@/app/actions";
 
 export function DeleteAccountForm({ d }: { d: Dict }) {
   const lp = useLocalePath();
-  const [state, formAction, pending] = useActionState<FormState, FormData>(
-    (prev, fd) => deleteAccountAction(d, prev, fd),
-    {}
-  );
+  const [state, formAction, pending] = useActionState<FormState, FormData>(deleteAccountAction, {});
 
   return (
     <div
@@ -41,11 +38,16 @@ export function DeleteAccountForm({ d }: { d: Dict }) {
             autoComplete="off"
           />
         </label>
-        {state.error && (
-          <p role="alert" className="rounded-xl px-4 py-3 text-sm font-semibold" style={{ background: "var(--cat-non-funziona-soft)", color: "var(--signal)" }}>
-            {state.error}
-          </p>
-        )}
+        {(() => {
+          const msg = state.error
+            ? ((d.errors as Record<string, string>)[state.error] ?? d.errors.generic)
+            : undefined;
+          return msg ? (
+            <p role="alert" className="rounded-xl px-4 py-3 text-sm font-semibold" style={{ background: "var(--cat-non-funziona-soft)", color: "var(--signal)" }}>
+              {msg}
+            </p>
+          ) : null;
+        })()}
         <div className="flex flex-wrap items-center gap-3 pt-1">
           <button type="submit" disabled={pending} className="btn btn-danger">
             {pending ? <Loader2 size={15} className="animate-spin" aria-hidden /> : <Trash2 size={15} aria-hidden />}

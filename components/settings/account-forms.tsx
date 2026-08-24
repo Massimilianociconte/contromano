@@ -32,10 +32,7 @@ export function ProfileForm({
   initialBio: string;
   savedText: string;
 }) {
-  const [state, formAction, pending] = useActionState<FormState, FormData>(
-    (prev, fd) => updateProfileAction(d, prev, fd),
-    {}
-  );
+  const [state, formAction, pending] = useActionState<FormState, FormData>(updateProfileAction, {});
 
   return (
     <div className="card p-6 md:p-8">
@@ -66,10 +63,7 @@ export function ProfileForm({
 }
 
 export function PasswordChangeForm({ d }: { d: Dict }) {
-  const [state, formAction, pending] = useActionState<FormState, FormData>(
-    (prev, fd) => changePasswordAction(d, prev, fd),
-    {}
-  );
+  const [state, formAction, pending] = useActionState<FormState, FormData>(changePasswordAction, {});
 
   return (
     <div className="card p-6 md:p-8">

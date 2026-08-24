@@ -10,10 +10,7 @@ import { loginAction, registerAction, type FormState } from "@/app/actions";
 export function AuthForm({ mode, d, next }: { mode: "login" | "register"; d: Dict; next?: string }) {
   const lp = useLocalePath();
   const action = mode === "login" ? loginAction : registerAction;
-  const [state, formAction, pending] = useActionState<FormState, FormData>(
-    (prev, fd) => action(d, prev, fd),
-    {}
-  );
+  const [state, formAction, pending] = useActionState<FormState, FormData>(action, {});
 
   return (
     <div className="mx-auto w-full max-w-md">
@@ -48,11 +45,16 @@ export function AuthForm({ mode, d, next }: { mode: "login" | "register"; d: Dic
             <input name="password" type="password" required minLength={8} placeholder={d.auth.passwordHint} className="input !rounded-xl !py-3" autoComplete={mode === "login" ? "current-password" : "new-password"} />
           </label>
 
-          {state.error && (
-            <p role="alert" className="rounded-xl px-4 py-3 text-sm font-semibold" style={{ background: "var(--cat-non-funziona-soft)", color: "var(--signal)" }}>
-              {state.error}
-            </p>
-          )}
+          {(() => {
+            const msg = state.error
+              ? ((d.errors as Record<string, string>)[state.error] ?? d.errors.generic)
+              : undefined;
+            return msg ? (
+              <p role="alert" className="rounded-xl px-4 py-3 text-sm font-semibold" style={{ background: "var(--cat-non-funziona-soft)", color: "var(--signal)" }}>
+                {msg}
+              </p>
+            ) : null;
+          })()}
 
           <button type="submit" disabled={pending} className="btn btn-primary btn-lg mt-1 w-full">
             {pending && <Loader2 size={16} className="animate-spin" aria-hidden />}

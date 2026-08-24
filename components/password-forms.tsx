@@ -13,10 +13,7 @@ import {
 
 export function ForgotForm({ d }: { d: Dict }) {
   const lp = useLocalePath();
-  const [state, formAction, pending] = useActionState<FormState, FormData>(
-    (prev, fd) => requestPasswordResetAction(d, prev, fd),
-    {}
-  );
+  const [state, formAction, pending] = useActionState<FormState, FormData>(requestPasswordResetAction, {});
 
   return (
     <div className="mx-auto w-full max-w-md">
@@ -48,11 +45,16 @@ export function ForgotForm({ d }: { d: Dict }) {
               <span className="mb-1.5 block text-sm font-semibold">{d.forgot.emailLabel}</span>
               <input name="email" type="email" required className="input !rounded-xl !py-3" autoComplete="email" />
             </label>
-            {state.error && (
-              <p role="alert" className="rounded-xl px-4 py-3 text-sm font-semibold" style={{ background: "var(--cat-non-funziona-soft)", color: "var(--signal)" }}>
-                {state.error}
-              </p>
-            )}
+            {(() => {
+              const msg = state.error
+                ? ((d.errors as Record<string, string>)[state.error] ?? d.errors.generic)
+                : undefined;
+              return msg ? (
+                <p role="alert" className="rounded-xl px-4 py-3 text-sm font-semibold" style={{ background: "var(--cat-non-funziona-soft)", color: "var(--signal)" }}>
+                  {msg}
+                </p>
+              ) : null;
+            })()}
             <button type="submit" disabled={pending} className="btn btn-primary w-full !py-3">
               {pending && <Loader2 size={15} className="animate-spin" aria-hidden />}
               {d.forgot.cta}
@@ -72,10 +74,7 @@ export function ForgotForm({ d }: { d: Dict }) {
 }
 
 export function ResetPasswordForm({ d, token }: { d: Dict; token: string }) {
-  const [state, formAction, pending] = useActionState<FormState, FormData>(
-    (prev, fd) => performPasswordResetAction(d, prev, fd),
-    {}
-  );
+  const [state, formAction, pending] = useActionState<FormState, FormData>(performPasswordResetAction, {});
 
   if (!token) {
     return (
@@ -100,11 +99,11 @@ export function ResetPasswordForm({ d, token }: { d: Dict; token: string }) {
             <span className="mb-1.5 block text-sm font-semibold">{d.reset.confirmLabel}</span>
             <input name="confirm" type="password" required minLength={8} className="input !rounded-xl !py-3" autoComplete="new-password" />
           </label>
-          {state.error && (
+          {(() => { const msg = state.error ? ((d.errors as Record<string,string>)[state.error] ?? d.errors.generic) : undefined; return msg ? (
             <p role="alert" className="rounded-xl px-4 py-3 text-sm font-semibold" style={{ background: "var(--cat-non-funziona-soft)", color: "var(--signal)" }}>
-              {state.error}
+              {msg}
             </p>
-          )}
+          ) : null; })()}
           <button type="submit" disabled={pending} className="btn btn-primary w-full !py-3">
             {pending && <Loader2 size={15} className="animate-spin" aria-hidden />}
             {d.reset.cta}
