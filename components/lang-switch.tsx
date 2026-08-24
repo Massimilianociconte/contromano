@@ -3,21 +3,24 @@
 import { useRouter } from "next/navigation";
 
 /**
- * Switch di lingua basato su URL reali. Usa window.location al click (non
- * usePathname, che riflette il path riscritto dal proxy) e normalizza i
- * prefissi /en duplicati: il toggle è sempre idempotente, mai /en/en.
+ * Switch di lingua con hard navigation: window.location garantisce che il
+ * server renderizzi con l'header x-lang del proxy — deterministico, immune
+ * da cache del router client e da rewrite.
  */
 export function LangSwitch({ current }: { current: "it" | "en" }) {
   const router = useRouter();
 
   function go(lang: "it" | "en") {
     let p = window.location.pathname;
-    // strip di TUTTI i prefissi /en eventualmente accumulati
     p = p.replace(/^(?:\/en)+(?=\/|$)/, "");
     if (!p.startsWith("/")) p = "/" + p;
     const target = lang === "en" ? ("/en" + (p === "/" ? "/" : p)) : p === "/" ? "/" : p;
-    if (target !== window.location.pathname) router.push(target);
-    else router.refresh();
+    if (target !== window.location.pathname) {
+      // hard navigation: certezza assoluta del cambio lingua lato server
+      window.location.assign(target);
+    } else {
+      router.refresh();
+    }
   }
 
   return (

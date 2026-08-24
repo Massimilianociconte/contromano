@@ -64,8 +64,9 @@ export function Header({
   ];
 
   return (
-    <header
-      className="sticky top-0 z-40 border-b backdrop-blur-xl"
+    <>
+      <header
+        className="sticky top-0 z-40 border-b backdrop-blur-xl"
       style={{ background: "color-mix(in srgb, var(--paper) 82%, transparent)", borderColor: "var(--line)" }}
     >
       {/* mobile bar */}
@@ -149,7 +150,10 @@ export function Header({
         </div>
       </div>
 
-      {/* full-screen mobile menu */}
+      </header>
+
+      {/* full-screen mobile menu — FUORI dall'header: il backdrop-filter dell'header
+          creerebbe un containing block e ridurrebbe il fixed inset-0 al box header */}
       <AnimatePresence>
         {open && (
           <motion.div
@@ -165,10 +169,9 @@ export function Header({
             role="dialog"
             aria-modal="true"
             aria-label={d.nav.menu}
-            initial={{ opacity: 0 }}
+            initial={{ opacity: 1 }}
             animate={{ opacity: 1 }}
-            exit={{ opacity: 0, transition: { duration: 0.16, ease: "easeIn" } }}
-            transition={{ duration: 0.22, ease: "easeOut" }}
+            exit={{ opacity: 0, transition: { duration: 0.15, ease: "easeIn" } }}
           >
             <motion.div
               className="flex h-14 items-center justify-between px-3"
@@ -310,7 +313,7 @@ export function Header({
           </motion.div>
         )}
       </AnimatePresence>
-    </header>
+    </>
   );
 }
 
