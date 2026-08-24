@@ -1,19 +1,24 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 /**
- * Switch di lingua basato su URL: /en/… per l'inglese (indicizzabile con
- * hreflang), percorso pulito per l'italiano. Il proxy imposta anche il cookie.
+ * Switch di lingua basato su URL reali. Usa window.location al click (non
+ * usePathname, che riflette il path riscritto dal proxy) e normalizza i
+ * prefissi /en duplicati: il toggle è sempre idempotente, mai /en/en.
  */
 export function LangSwitch({ current }: { current: "it" | "en" }) {
-  const pathname = usePathname() || "/";
+  const router = useRouter();
 
-  const target =
-    current === "it"
-      ? "/en" + (pathname === "/" ? "/" : pathname)
-      : pathname.replace(/^\/en/, "") || "/";
+  function go(lang: "it" | "en") {
+    let p = window.location.pathname;
+    // strip di TUTTI i prefissi /en eventualmente accumulati
+    p = p.replace(/^(?:\/en)+(?=\/|$)/, "");
+    if (!p.startsWith("/")) p = "/" + p;
+    const target = lang === "en" ? ("/en" + (p === "/" ? "/" : p)) : p === "/" ? "/" : p;
+    if (target !== window.location.pathname) router.push(target);
+    else router.refresh();
+  }
 
   return (
     <div
@@ -24,26 +29,18 @@ export function LangSwitch({ current }: { current: "it" | "en" }) {
     >
       {(["it", "en"] as const).map((l) => {
         const active = current === l;
-        const href =
-          l === "en"
-            ? current === "en"
-              ? pathname
-              : "/en" + (pathname === "/" ? "/" : pathname)
-            : current === "it"
-              ? pathname
-              : pathname.replace(/^\/en/, "") || "/";
-        void target;
         return (
-          <Link
+          <button
             key={l}
-            href={href}
+            type="button"
+            onClick={() => go(l)}
             className="rounded-full px-2.5 py-1 uppercase transition-colors"
             aria-pressed={active}
             aria-label={l === "it" ? "Italiano" : "English"}
             style={active ? { background: "var(--ink)", color: "var(--paper)" } : { color: "var(--muted)" }}
           >
             {l}
-          </Link>
+          </button>
         );
       })}
     </div>

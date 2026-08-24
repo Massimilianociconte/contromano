@@ -84,9 +84,9 @@ export function Header({
           {user ? (
             <UserMenu user={user} d={d} />
           ) : (
-            <button onClick={() => setOpen(true)} className="btn btn-ghost !px-2.5 !py-2 text-sm" style={{ color: "var(--muted)" }}>
+            <Link href={lp("/accedi")} className="btn btn-ghost !px-2.5 !py-2 text-sm" style={{ color: "var(--muted)" }}>
               {d.nav.login}
-            </button>
+            </Link>
           )}
           <button
             className="-mr-1 flex h-9 w-9 items-center justify-center rounded-full text-ink transition-colors hover:bg-[var(--surface2)]"
