@@ -37,7 +37,14 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   return {
     title: data.card.title,
     description,
-    alternates: { canonical: `/proposta/${slug}` },
+    alternates: {
+      canonical: `/proposta/${slug}`,
+      languages: {
+        it: `/proposta/${slug}`,
+        en: `/en/proposta/${slug}`,
+        "x-default": `/proposta/${slug}`,
+      },
+    },
     openGraph: {
       type: "article",
       title: `${data.card.title} · Contromano`,

@@ -11,10 +11,15 @@ type SP = Promise<Record<string, string | string[] | undefined>>;
 
 export async function generateMetadata({ searchParams }: { searchParams: SP }): Promise<Metadata> {
   const sp = await searchParams;
-  const hasFilters = Object.keys(sp).some((k) => k !== "sort");
+  const hasFilters = Object.keys(sp).some((k) => k !== "sort" && k !== "lang");
   return {
-    title: "Esplora",
-    alternates: { canonical: "/esplora" },
+    title: "Esplora — tutti i problemi segnalati dalla community",
+    description:
+      "Cerca tra le proposte della community per settore, città e periodo: trasporti, burocrazia, lavoro, salute, tecnologia. Scopri cosa non funziona e quanti la pensano come te.",
+    alternates: {
+      canonical: "/esplora",
+      languages: { it: "/esplora", en: "/en/esplora", "x-default": "/esplora" },
+    },
     robots: hasFilters ? { index: false, follow: true } : undefined,
   };
 }

@@ -13,7 +13,12 @@ type Params = Promise<{ username: string }>;
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { username } = await params;
   const u = await getUserByUsername(username);
-  return { title: u?.name ?? "Profilo" };
+  if (!u) return { title: "Profilo" };
+  return {
+    title: `${u.name} (@${u.username})`,
+    description: u.bio || `Profilo pubblico di ${u.name} su Contromano: problemi pubblicati, voti, soluzioni proposte e contributi alla community.`,
+    alternates: { canonical: `/profilo/${username}` },
+  };
 }
 
 export default async function ProfilePage({ params }: { params: Params }) {

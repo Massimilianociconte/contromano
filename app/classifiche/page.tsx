@@ -7,10 +7,16 @@ import { EmptyState } from "@/components/ui/primitives";
 import { Inbox } from "lucide-react";
 
 export async function generateMetadata({ searchParams }: { searchParams: SP }): Promise<Metadata> {
-  const sp = await searchParams;
+  const { tab: tabRaw } = await searchParams;
+  const tabParam = typeof tabRaw === "string" && tabRaw ? `?tab=${tabRaw}` : "";
   return {
-    title: "Classifiche",
-    alternates: { canonical: typeof sp.tab === "string" && sp.tab ? `/classifiche?tab=${sp.tab}` : "/classifiche" },
+    title: "Classifiche — i problemi che contano, misurati dalla community",
+    description:
+      "Top problemi, cose che dovrebbero esistere, sottovalutati, trending, global e local: le classifiche del dissenso costruttivo aggiornate in tempo reale con il Consensus Score.",
+    alternates: {
+      canonical: `/classifiche${tabParam}`,
+      languages: { it: `/classifiche${tabParam}`, en: `/en/classifiche${tabParam}`, "x-default": `/classifiche${tabParam}` },
+    },
   };
 }
 
