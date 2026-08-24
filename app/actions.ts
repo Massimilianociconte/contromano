@@ -347,6 +347,53 @@ async function requireAdmin() {
   return user;
 }
 
+export async function updateProfileAction(
+  d: Dict,
+  _prev: FormState,
+  formData: FormData
+): Promise<FormState> {
+  const user = await getCurrentUser();
+  if (!user) return { error: d.errors.notAuthenticated };
+  if (!rateLimit(`profile:${user.id}`, 10, 600_000)) return { error: d.errors.rateLimited };
+
+  const name = String(formData.get("name") ?? "").trim().slice(0, 60);
+  const bio = String(formData.get("bio") ?? "").trim().slice(0, 280);
+  if (name.length < 2) return { error: d.errors.generic };
+
+  try {
+    await db.update(users).set({ name, bio }).where(eq(users.id, user.id));
+    revalidatePath("/impostazioni");
+    revalidatePath(`/profilo/${user.username}`);
+    return { ok: true };
+  } catch {
+    return { error: d.errors.generic };
+  }
+}
+
+export async function changePasswordAction(
+  d: Dict,
+  _prev: FormState,
+  formData: FormData
+): Promise<FormState> {
+  const session = await getCurrentUser();
+  if (!session) return { error: d.errors.notAuthenticated };
+  if (!rateLimit(`pwdchange:${session.id}`, 5, 3600_000)) return { error: d.errors.rateLimited };
+
+  const current = String(formData.get("current") ?? "");
+  const next = String(formData.get("next") ?? "");
+  const confirm = String(formData.get("confirm") ?? "");
+
+  const rows = await db.select().from(users).where(eq(users.id, session.id)).limit(1);
+  const row = rows[0];
+  if (!row || row.passwordHash === "-" || !(await verifyPassword(current, row.passwordHash)))
+    return { error: d.errors.invalidCredentials };
+  if (next.length < 8) return { error: d.errors.passwordShort };
+  if (next !== confirm) return { error: d.errors.passwordMismatch };
+
+  await db.update(users).set({ passwordHash: await hashPassword(next) }).where(eq(users.id, session.id));
+  return { ok: true };
+}
+
 export async function setProposalStatusAction(
   proposalId: string,
   status: "published" | "hidden"

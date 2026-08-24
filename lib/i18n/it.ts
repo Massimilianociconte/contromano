@@ -326,6 +326,19 @@ export const it = {
   settings: {
     title: "Impostazioni account",
     subtitle: "Gestisci il tuo profilo e i tuoi dati.",
+    profileTitle: "Profilo pubblico",
+    profileSubtitle: "Come ti vedono gli altri utenti della community.",
+    nameLabel: "Nome visualizzato",
+    bioLabel: "Bio",
+    bioPlaceholder: "Una riga su di te (opzionale)…",
+    saveProfile: "Salva profilo",
+    saved: "Salvato ✓",
+    passwordTitle: "Cambia password",
+    currentLabel: "Password attuale",
+    newLabel: "Nuova password",
+    newConfirmLabel: "Conferma nuova password",
+    changeCta: "Aggiorna password",
+    changed: "Password aggiornata ✓",
     dangerZone: "Zona di rischio",
     deleteTitle: "Elimina definitivamente l'account",
     deleteBody:
@@ -370,7 +383,7 @@ export const it = {
     terms: "Termini di servizio",
     updated: "Ultimo aggiornamento",
     placeholder:
-      "Questo documento è un modello informativo: prima del lancio sostituisci i campi tra parentesi quadre con i dati reali del titolare del trattamento e falla verificare da un legale.",
+      "Documento fornito a scopo informativo: non sostituisce una consulenza legale personalizzata.",
   },
   home_deleted: "Il tuo account è stato eliminato. Ci dispiace vederti andare — grazie per aver contribuito.",
 };

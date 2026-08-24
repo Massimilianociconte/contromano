@@ -1,12 +1,12 @@
 export type LegalSection = { heading: string; paragraphs: string[] };
 export type LegalDoc = { title: string; updated: string; sections: LegalSection[] };
 
-const OWNER = "[RAGIONE SOCIALE DEL TITOLARE]";
-const OWNER_EMAIL = "[email di contatto privacy]";
+const OWNER = "Massimiliano Ciconte (titolare della piattaforma Contromano)";
+const OWNER_EMAIL = "privacy@contromano.it";
 
 const privacyIT: LegalDoc = {
   title: "Privacy policy",
-  updated: "[DATA]",
+  updated: "24 agosto 2026",
   sections: [
     {
       heading: "1. Titolare del trattamento",
@@ -52,7 +52,7 @@ const privacyIT: LegalDoc = {
 
 const cookiesIT: LegalDoc = {
   title: "Cookie policy",
-  updated: "[DATA]",
+  updated: "24 agosto 2026",
   sections: [
     {
       heading: "1. Cookie tecnici utilizzati",
@@ -78,7 +78,7 @@ const cookiesIT: LegalDoc = {
 
 const termsIT: LegalDoc = {
   title: "Termini di servizio",
-  updated: "[DATA]",
+  updated: "24 agosto 2026",
   sections: [
     {
       heading: "1. Oggetto del servizio",
@@ -110,7 +110,7 @@ const termsIT: LegalDoc = {
     {
       heading: "5. Legge applicabile",
       paragraphs: [
-        "I presenti termini sono disciplinati dalla legge italiana. Per le controversie è competente il foro di [CITTÀ], salvo il foro del consumatore ove prevalente.",
+        "I presenti termini sono disciplinati dalla legge italiana. Per le controversie è competente il foro di Milano, salvo il foro del consumatore ove prevalente.",
       ],
     },
   ],
@@ -118,7 +118,7 @@ const termsIT: LegalDoc = {
 
 const privacyEN: LegalDoc = {
   title: "Privacy policy",
-  updated: "[DATE]",
+  updated: "August 24, 2026",
   sections: [
     {
       heading: "1. Data controller",
@@ -164,7 +164,7 @@ const privacyEN: LegalDoc = {
 
 const cookiesEN: LegalDoc = {
   title: "Cookie policy",
-  updated: "[DATE]",
+  updated: "August 24, 2026",
   sections: [
     {
       heading: "1. Technical cookies in use",
@@ -190,7 +190,7 @@ const cookiesEN: LegalDoc = {
 
 const termsEN: LegalDoc = {
   title: "Terms of service",
-  updated: "[DATE]",
+  updated: "August 24, 2026",
   sections: [
     {
       heading: "1. Scope of service",
@@ -222,7 +222,7 @@ const termsEN: LegalDoc = {
     {
       heading: "5. Governing law",
       paragraphs: [
-        "These terms are governed by Italian law. For disputes the court of [CITY] has jurisdiction, subject to mandatory consumer forum rules.",
+        "These terms are governed by Italian law. For disputes the court of Milan has jurisdiction, subject to mandatory consumer forum rules.",
       ],
     },
   ],

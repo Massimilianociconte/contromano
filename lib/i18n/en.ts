@@ -325,6 +325,19 @@ export const en: Dict = {
   settings: {
     title: "Account settings",
     subtitle: "Manage your profile and your data.",
+    profileTitle: "Public profile",
+    profileSubtitle: "How other community members see you.",
+    nameLabel: "Display name",
+    bioLabel: "Bio",
+    bioPlaceholder: "One line about you (optional)…",
+    saveProfile: "Save profile",
+    saved: "Saved ✓",
+    passwordTitle: "Change password",
+    currentLabel: "Current password",
+    newLabel: "New password",
+    newConfirmLabel: "Confirm new password",
+    changeCta: "Update password",
+    changed: "Password updated ✓",
     dangerZone: "Danger zone",
     deleteTitle: "Permanently delete account",
     deleteBody:
@@ -369,7 +382,7 @@ export const en: Dict = {
     terms: "Terms of service",
     updated: "Last updated",
     placeholder:
-      "This document is an informational template: before launch, replace the bracketed placeholders with the real data of the data controller and have it reviewed by a lawyer.",
+      "Informational document: it does not replace personalised legal advice.",
   },
   home_deleted: "Your account has been deleted. Sorry to see you go — thanks for contributing.",
 };
